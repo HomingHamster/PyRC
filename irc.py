@@ -3,7 +3,6 @@ import socket
 import Queue
 import threading
 import sys
-import String
 
 class RunClient:
     def main(self):
@@ -19,46 +18,59 @@ class IRCInstance:
     def __init__(self):
         self.HOST="irc.freenode.net"
         self.PORT=6667
-        self.NICK=""
-        self.IDENT=""
-        self.REALNAME=""
+        self.NICK="testbot"
+        self.IDENT="krazy"
+        self.REALNAME="turnipples"
         self.readbuffer=""
         
     def connect(self, address, port):
-        self.connection = socket.scoket()
-        self.connection.connect(address, port)
+        self.connection = socket.socket()
+        self.connection.connect((address, port))
         self.connection.send("NICK %s\r\n" % self.NICK)
         self.connection.send("USER %s %s bla :%s\r\n" 
                         % (self.IDENT, self.HOST, self.REALNAME))
+        read = threading.Thread(target=self.readSock)
+        read.start()
         
     def serverSend(self, command, args):
         args = " ".join(args)
         self.connection.send("%s %s" % (command, args))
+        print("%s %s" % (command, args))
         
     def channelSend(self, channel, message):
         pass
         
     def processInput(self, line):
+        GUI.output_box.append(line)
         line = line.split(" ")
         if line[0] == "PING":
             self.serverSend("PONG", line[1])
+        GUI.output_box.scrollbar.set(0,0)
     
     def readSock(self):
-        self.readbuffer += self.connection.recv(1024)
-        temp = self.readbuffer.split("\n")
-        self.readbuffer = temp.pop()
-        for line in temp:
-            line = line.rstrip()
-            self.processInput(line)
+        while True:
+            self.readbuffer += self.connection.recv(1024)
+            temp = self.readbuffer.split("\n")
+            self.readbuffer = temp.pop()
+            for line in temp:
+                line = line.rstrip()
+                self.processInput(line)
 
 class OutputBox(Tkinter.Text):
     def append(self, text):
         self.insert(Tkinter.INSERT, text + "\n")
         
     def __init__(self, master=None):
-        Tkinter.Text.__init__(self, master)
+        self.scrollbar = Tkinter.Scrollbar(master)
+        self.scrollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
+        
+        Tkinter.Text.__init__(self, master, wrap=Tkinter.WORD,
+                        yscrollcommand=self.scrollbar.set)
+        
         self.pack(fill = "both", side = "top", expand = True)
         self.insert(Tkinter.INSERT, "Welcome to PyRC 0.1a\n")
+        
+        self.scrollbar.config(command=self.yview)
     
 class InputBox(Tkinter.Entry):
     def takeInput(self, event):
@@ -70,18 +82,19 @@ class InputBox(Tkinter.Entry):
             print line
             self.parseCommand(line[0], line[1:])
         else:
-            IRCInstance.send(line)
+            GUI.irc_instance.send(line)
         self.contents.set("")
         self["textvariable"] = self.contents
     
     def parseCommand(self, command, args):
         if command.lower() == "server":
             if len(args) == 2:
-                IRCInstance.connect(args[1], args[2])
+                GUI.irc_instance.connect(args[0], args[1])
             elif len(args) == 1:
-                IRCInstance.connect(args[1], 6667)
+                GUI.irc_instance.connect(args[0], 6667)
             else:
                 GUI.output_box.append("Invalid Command")
+                GUI.output_box.set(0,0)
     
     def __init__(self, master=None):
         Tkinter.Entry.__init__(self, master)
@@ -91,6 +104,8 @@ class InputBox(Tkinter.Entry):
                   self.takeInput)
 
 class GUI(Tkinter.Frame):
+    
+    irc_instance = IRCInstance()
        
     def makeMenuBar(self):
         self.menubar = Tkinter.Menu(self)
