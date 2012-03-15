@@ -2,7 +2,7 @@ PyRC - README
 
 ABOUT
 
-PyRC is a free and open source python IRC client that does not require any non standard modules of libraries.
+PyRC is a free and open source python IRC client that does not require any non standard modules or libraries.
 
 INSTALL
 
