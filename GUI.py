@@ -1,7 +1,7 @@
 from Tkinter import *
 
 class GUI(Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=Tk()):
         Frame.__init__(self, master)
         master.config(menu=self.menuBar())
         self.createWidgets()
@@ -36,6 +36,8 @@ class GUI(Frame):
         
         serverListbox.insert(END, "a list entry")
         
+        ServerList()
+        
         
        
     def menuBar(self):
@@ -47,6 +49,43 @@ class GUI(Frame):
         
         menubar.add_cascade(label="File", menu=filemenu)
         return menubar
+        
+class ServerList(Frame):
+    def __init__(self, master=Toplevel()):
+        Frame.__init__(self, master)
+        serverListFrame = Frame(self)
+        scrollbar = Scrollbar(serverListFrame, orient=VERTICAL)
+        serverListbox = Listbox(serverListFrame, yscrollcommand=scrollbar.set)
+        serverListbox.pack(fill=BOTH, side=LEFT, expand=1)
+        scrollbar.config(command=serverListbox.yview)
+        scrollbar.pack(side=RIGHT, fill=Y)
+        serverListFrame.pack(fill=BOTH, expand=1)
+        
+        buttonFrame = Frame(self)
+        connectButton = Button(buttonFrame, text="Connect", command=self.connect())
+        connectButton.pack(side=LEFT)
+        addServerButton = Button(buttonFrame, text="Add Server", command=self.addServer())
+        addServerButton.pack(side=LEFT)
+        editServerButton = Button(buttonFrame, text="Edit Server", command=self.editServer())
+        editServerButton.pack(side=LEFT)
+        deleteServerButton = Button(buttonFrame, text="Delete Server", command=self.deleteServer())
+        deleteServerButton.pack(side=LEFT)
+        buttonFrame.pack()
+        
+        self.pack(fill=BOTH, expand=1)
+    def connect(self):
+        pass
+    def addServer(self):
+        pass
+    def editServer(self):
+        pass
+    def deleteServer(self):
+        pass
+        
+class NewServerDialog(Frame):
+    def __init__(self, master=Toplevel()):
+        
+        
         
 class OutputBox(Frame):
     def __init__(self, master=None):
@@ -89,6 +128,5 @@ class InputBox(Entry):
                   self.takeInput)
 		
 if __name__ == '__main__':
-    root=Tk()
-    app = GUI(master=root)
+    app = GUI()
     app.mainloop()
